@@ -1,35 +1,52 @@
 from django.conf import settings
+from django.core.cache import cache
 
 from moneyed import Money, CURRENCIES
 import requests
 
 base_url = "http://openexchangerates.org/api/"
 
-def get_rate_for_date(date_obj, source_currency, destination_currency):
-    if source_currency in ('USD', CURRENCIES['USD']):
-        lookup_currency = destination_currency
-    elif destination_currency  in ('USD', CURRENCIES['USD']):
-        lookup_currency = source_currency
-    else:
-        raise Exception("One side of the exchange must be USD")
+class ExchangeRateSource(object):
+    def get_cache_key(self, date_obj):
+        return 'currency_exchange:{}'.format(
+            date_obj.strftime('%Y-%m-%d')
+        )
 
-    date_string = date_obj.strftime('%Y-%m-%d')
+    def get_exchange_data_for_date(self, date_obj):
+        date_string = date_obj.strftime('%Y-%m-%d')
+        resp = requests.get(
+            "{}historical/{}.json".format(base_url, date_string),
+            params={'app_id': settings.OPEN_EXCHANGE_RATES_APP_ID}
+        )
 
-    resp = requests.get(
-        "{}historical/{}.json".format(base_url, date_string),
-        params={'app_id': settings.OPEN_EXCHANGE_RATES_APP_ID}
-    )
+        exchange_rates = resp.json()['rates']
 
-    exchange_rates = resp.json()['rates']
+    def get_rate_for_date(self, date_obj, source_currency, destination_currency):
+        if source_currency in ('USD', CURRENCIES['USD']):
+            lookup_currency = destination_currency
+        elif destination_currency  in ('USD', CURRENCIES['USD']):
+            lookup_currency = source_currency
+        else:
+            raise Exception("One side of the exchange must be USD")
 
-    rate = exchange_rates[str(lookup_currency)]
-    if lookup_currency == destination_currency:
-        return rate
-    else:
-        return 1 / rate
+        cache_key = self.get_cache_key(date_obj)
+        exchange_rates = cache.get(cache_key, False)
+        if not exchange_rates:
+            exchange_rates = self.get_exchange_data_for_date(date_obj)
+            cache.set(cache_key, exchange_rates)
+
+        rate = exchange_rates[str(lookup_currency)]
+        if lookup_currency == destination_currency:
+            return rate
+        else:
+            return 1 / rate
 
 
 def exchange_for_date(date_obj, money, destination_currency):
-    rate = get_rate_for_date(date_obj, money.currency, destination_currency)
+    rate = ExchangeRateSource().get_rate_for_date(
+        date_obj,
+        money.currency,
+        destination_currency
+    )
 
     return Money(float(money * rate), currency=destination_currency)
