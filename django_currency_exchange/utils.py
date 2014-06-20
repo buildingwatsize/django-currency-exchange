@@ -19,7 +19,7 @@ class ExchangeRateSource(object):
             params={'app_id': settings.OPEN_EXCHANGE_RATES_APP_ID}
         )
 
-        exchange_rates = resp.json()['rates']
+        return resp.json()['rates']
 
     def get_rate_for_date(self, date_obj, source_currency, destination_currency):
         if source_currency in ('USD', CURRENCIES['USD']):
