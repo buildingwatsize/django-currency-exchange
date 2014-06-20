@@ -5,12 +5,11 @@ import requests
 
 base_url = "http://openexchangerates.org/api/"
 
-
-def exchange_for_date(date_obj, money, destination_currency):
-    if money.currency in ('USD', CURRENCIES['USD']):
+def get_rate_for_date(date_obj, source_currency, destination_currency):
+    if source_currency in ('USD', CURRENCIES['USD']):
         lookup_currency = destination_currency
     elif destination_currency  in ('USD', CURRENCIES['USD']):
-        lookup_currency = money.currency
+        lookup_currency = source_currency
     else:
         raise Exception("One side of the exchange must be USD")
 
@@ -24,8 +23,13 @@ def exchange_for_date(date_obj, money, destination_currency):
     exchange_rates = resp.json()['rates']
 
     rate = exchange_rates[str(lookup_currency)]
-
     if lookup_currency == destination_currency:
-        return Money(float(money * rate), currency=destination_currency)
+        return rate
     else:
-        return Money(float(money * (1 / rate)), currency=destination_currency)
+        return 1 / rate
+
+
+def exchange_for_date(date_obj, money, destination_currency):
+    rate = get_rate_for_date(date_obj, money.currency, destination_currency)
+
+    return Money(float(money * rate), currency=destination_currency)
