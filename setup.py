@@ -10,5 +10,5 @@ setup(
     author_email='tech@gizmag.com',
     url='https://github.com/gizmag/django-currency-exchange',
     packages=find_packages(),
-    install_requires=['django', 'requests']
+    install_requires=['django', 'requests', 'moneyed']
 )
