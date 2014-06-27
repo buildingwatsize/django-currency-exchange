@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-currency-exchange',
-    version='0.1.1',
+    version='0.1.2',
     description='Django Foreign Exchange',
     author='Gizmag',
     author_email='tech@gizmag.com',
