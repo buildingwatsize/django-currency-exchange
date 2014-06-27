@@ -49,4 +49,4 @@ def exchange_for_date(date_obj, money, destination_currency):
         destination_currency
     )
 
-    return Money(float(money * rate), currency=destination_currency)
+    return Money(float(money.amount) * rate, currency=destination_currency)
