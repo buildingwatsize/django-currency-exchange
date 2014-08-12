@@ -6,6 +6,7 @@ import requests
 
 base_url = "http://openexchangerates.org/api/"
 
+
 class ExchangeRateSource(object):
     def get_cache_key(self, date_obj):
         return 'currency_exchange:{}'.format(
