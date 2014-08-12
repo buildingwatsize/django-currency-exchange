@@ -24,7 +24,7 @@ class ExchangeRateSource(object):
     def get_rate_for_date(self, date_obj, source_currency, destination_currency):
         if source_currency in ('USD', CURRENCIES['USD']):
             lookup_currency = destination_currency
-        elif destination_currency  in ('USD', CURRENCIES['USD']):
+        elif destination_currency in ('USD', CURRENCIES['USD']):
             lookup_currency = source_currency
         else:
             raise Exception("One side of the exchange must be USD")
