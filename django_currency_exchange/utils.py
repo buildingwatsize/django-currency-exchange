@@ -6,6 +6,7 @@ import requests
 
 base_url = "http://openexchangerates.org/api/"
 
+
 class ExchangeRateSource(object):
     def get_cache_key(self, date_obj):
         return 'currency_exchange:{}'.format(
@@ -22,18 +23,21 @@ class ExchangeRateSource(object):
         return resp.json()['rates']
 
     def get_rate_for_date(self, date_obj, source_currency, destination_currency):
-        if source_currency in ('USD', CURRENCIES['USD']):
-            lookup_currency = destination_currency
-        elif destination_currency  in ('USD', CURRENCIES['USD']):
-            lookup_currency = source_currency
-        else:
-            raise Exception("One side of the exchange must be USD")
 
         cache_key = self.get_cache_key(date_obj)
         exchange_rates = cache.get(cache_key, False)
         if not exchange_rates:
             exchange_rates = self.get_exchange_data_for_date(date_obj)
             cache.set(cache_key, exchange_rates)
+
+        if source_currency in ('USD', CURRENCIES['USD']):
+            lookup_currency = destination_currency
+        elif destination_currency in ('USD', CURRENCIES['USD']):
+            lookup_currency = source_currency
+        else:
+            rate_usd_source = exchange_rates[str(source_currency)]
+            rate_usd_destination = exchange_rates[str(destination_currency)]
+            return (1 / rate_usd_source) * rate_usd_destination
 
         rate = exchange_rates[str(lookup_currency)]
         if lookup_currency == destination_currency:
