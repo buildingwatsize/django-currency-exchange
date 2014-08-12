@@ -43,25 +43,10 @@ class ExchangeRateSource(object):
 
 
 def exchange_for_date(date_obj, money, destination_currency):
-    if money.currency not in ('USD', CURRENCIES['USD']) and destination_currency not in ('USD', CURRENCIES['USD']):
-        # USD is not on either side of the conversion, so we must 2-step convert via USD
-        usd_rate = ExchangeRateSource().get_rate_for_date(
-            date_obj,
-            money.currency,
-            CURRENCIES['USD']
-        )
-        usd_amount = Money(float(money.amount) * usd_rate, currency=CURRENCIES['USD'])
-        destination_rate = ExchangeRateSource().get_rate_for_date(
-            date_obj,
-            CURRENCIES['USD'],
-            destination_currency
-        )
-        return Money(float(usd_amount.amount) * destination_rate, currency=destination_currency)
-    else:
-        rate = ExchangeRateSource().get_rate_for_date(
-            date_obj,
-            money.currency,
-            destination_currency
-        )
+    rate = ExchangeRateSource().get_rate_for_date(
+        date_obj,
+        money.currency,
+        destination_currency
+    )
 
-        return Money(float(money.amount) * rate, currency=destination_currency)
+    return Money(float(money.amount) * rate, currency=destination_currency)
